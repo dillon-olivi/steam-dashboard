@@ -1,6 +1,6 @@
 // IMPORTANT: after deploying the backend (see README), replace this
 // with your actual Render URL, e.g. "https://steam-dashboard-api.onrender.com"
-const API_BASE_URL = "REPLACE_WITH_YOUR_DEPLOYED_BACKEND_URL";
+const API_BASE_URL = "https://steam-dashboard-qlvr.onrender.com";
 
 // A well-known public Steam profile, used so "Load Demo Profile" always
 // works even if a visitor doesn't have their own Steam ID handy.
