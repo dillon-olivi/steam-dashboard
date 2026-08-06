@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Steam Stats Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <h1>Steam Stats Dashboard</h1>
+  <p class="subtitle">
+    Enter any public Steam ID, or click the demo button, this pulls
+    live data through a FastAPI backend I built and deployed, which
+    proxies the Steam Web API server-side (Steam blocks direct browser
+    calls, and the API key can't safely live in frontend code).
+  </p>
+
+  <div class="controls">
+    <input type="text" id="steamid-input" placeholder="Enter a 64-bit Steam ID" />
+    <button id="lookup-btn">Look Up</button>
+    <button id="demo-btn">Load Demo Profile</button>
+  </div>
+
+  <p id="status"></p>
+
+  <div id="profile" class="profile hidden">
+    <img id="avatar" src="" alt="Avatar" />
+    <div>
+      <h2 id="persona-name"></h2>
+      <p id="totals"></p>
+    </div>
+  </div>
+
+  <div id="games-list"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
