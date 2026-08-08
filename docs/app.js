@@ -1,10 +1,9 @@
-// IMPORTANT: after deploying the backend (see README), replace this
-// with your actual Render URL, e.g. "https://steam-dashboard-api.onrender.com"
+// Backend deployed on Render, see README for redeploy/setup steps.
 const API_BASE_URL = "https://steam-dashboard-qlvr.onrender.com";
 
-// A well-known public Steam profile, used so "Load Demo Profile" always
-// works even if a visitor doesn't have their own Steam ID handy.
-const DEMO_STEAM_ID = "76561197960287930";
+// The demo profile is now found dynamically via the backend's
+// /api/demo-profile endpoint (see below), instead of trusting one
+// hardcoded ID to stay public forever.
 
 const statusEl = document.getElementById("status");
 const profileEl = document.getElementById("profile");
@@ -65,16 +64,43 @@ async function loadProfile(steamId) {
   }
 }
 
+// Accepts a raw SteamID64, a full /profiles/ URL, a full /id/ vanity
+// URL, or just a bare vanity name typed directly, and returns
+// whatever identifier the backend should resolve. The backend (via
+// resolve_identifier) handles turning a vanity name into a real ID,
+// this function's only job is stripping the surrounding URL if there
+// is one.
+function extractSteamId(raw) {
+  const trimmed = raw.trim();
+  const profileUrlMatch = trimmed.match(/steamcommunity\.com\/profiles\/(\d+)/i);
+  if (profileUrlMatch) return profileUrlMatch[1];
+  const vanityUrlMatch = trimmed.match(/steamcommunity\.com\/id\/([^\/]+)/i);
+  if (vanityUrlMatch) return vanityUrlMatch[1];
+  return trimmed; // bare ID or bare vanity name, let the backend resolve it
+}
+
 document.getElementById("lookup-btn").addEventListener("click", () => {
-  const id = document.getElementById("steamid-input").value.trim();
-  if (!id) {
-    setStatus("Enter a Steam ID first, or click Load Demo Profile.", true);
+  const raw = document.getElementById("steamid-input").value;
+  if (!raw.trim()) {
+    setStatus("Enter a Steam ID, vanity name, or profile URL first, or click Load Demo Profile.", true);
     return;
   }
-  loadProfile(id);
+  loadProfile(extractSteamId(raw));
 });
 
-document.getElementById("demo-btn").addEventListener("click", () => {
-  document.getElementById("steamid-input").value = DEMO_STEAM_ID;
-  loadProfile(DEMO_STEAM_ID);
+document.getElementById("demo-btn").addEventListener("click", async () => {
+  if (API_BASE_URL.startsWith("REPLACE_WITH")) {
+    setStatus("Backend not deployed yet, see the README for deployment steps.", true);
+    return;
+  }
+  setStatus("Finding a public demo profile\u2026");
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/demo-profile`);
+    if (!res.ok) throw new Error((await res.json()).detail || "No public demo profile available right now");
+    const { steam_id } = await res.json();
+    document.getElementById("steamid-input").value = steam_id;
+    loadProfile(steam_id);
+  } catch (err) {
+    setStatus(err.message, true);
+  }
 });
