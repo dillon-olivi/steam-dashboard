@@ -1,31 +1,23 @@
-// Backend deployed on Render, see README for redeploy/setup steps.
+// Backend deployed on Render, see DEVELOPMENT.md for redeploy/setup steps.
 const API_BASE_URL = "https://steam-dashboard-qlvr.onrender.com";
 
-// The demo profile is now found dynamically via the backend's
-// /api/demo-profile endpoint (see below), instead of trusting one
-// hardcoded ID to stay public forever.
-
 const statusEl = document.getElementById("status");
+const spinnerEl = document.getElementById("spinner");
 const profileEl = document.getElementById("profile");
+const gamesSectionEl = document.getElementById("games-section");
 const gamesListEl = document.getElementById("games-list");
 
-function setStatus(message, isError = false) {
+function setStatus(message, isError = false, loading = false) {
   statusEl.textContent = message;
   statusEl.className = isError ? "error" : "";
+  spinnerEl.classList.toggle("hidden", !loading);
 }
 
 async function loadProfile(steamId) {
-  if (API_BASE_URL.startsWith("REPLACE_WITH")) {
-    setStatus(
-      "Backend not deployed yet, see the README for the one-time Render deployment steps.",
-      true
-    );
-    return;
-  }
-
   profileEl.classList.add("hidden");
+  gamesSectionEl.classList.add("hidden");
   gamesListEl.innerHTML = "";
-  setStatus("Loading, the free-tier backend may take up to 30-50 seconds to wake up on the first request today\u2026");
+  setStatus("Loading, the free-tier backend may take up to 30-50 seconds to wake up on the first request today\u2026", false, true);
 
   try {
     const [summaryRes, gamesRes] = await Promise.all([
@@ -41,14 +33,15 @@ async function loadProfile(steamId) {
 
     document.getElementById("avatar").src = summary.avatarfull || "";
     document.getElementById("persona-name").textContent = summary.personaname || "Unknown Player";
-    document.getElementById("totals").textContent =
-      `${games.total_games} games owned \u00b7 ${games.total_hours_played} hours played total`;
+    document.getElementById("badge-games").textContent = `${games.total_games} games`;
+    document.getElementById("badge-hours").textContent = `${games.total_hours_played} hrs played`;
 
     const maxHours = Math.max(...games.top_games.map(g => g.hours_played), 1);
     gamesListEl.innerHTML = games.top_games
       .map(g => `
         <div class="game-row">
-          <span class="game-name">${g.name}</span>
+          ${g.icon_url ? `<img class="game-icon" src="${g.icon_url}" alt="" />` : `<div class="game-icon"></div>`}
+          <span class="game-name" title="${g.name}">${g.name}</span>
           <div class="bar-track">
             <div class="bar-fill" style="width:${(g.hours_played / maxHours) * 100}%"></div>
           </div>
@@ -58,25 +51,23 @@ async function loadProfile(steamId) {
       .join("");
 
     profileEl.classList.remove("hidden");
+    gamesSectionEl.classList.remove("hidden");
     setStatus("");
   } catch (err) {
-    setStatus(err.message, true);
+    setStatus(err.message, true, false);
   }
 }
 
 // Accepts a raw SteamID64, a full /profiles/ URL, a full /id/ vanity
-// URL, or just a bare vanity name typed directly, and returns
-// whatever identifier the backend should resolve. The backend (via
-// resolve_identifier) handles turning a vanity name into a real ID,
-// this function's only job is stripping the surrounding URL if there
-// is one.
+// URL, or just a bare vanity name typed directly. The backend resolves
+// vanity names to real IDs, this only strips the surrounding URL.
 function extractSteamId(raw) {
   const trimmed = raw.trim();
   const profileUrlMatch = trimmed.match(/steamcommunity\.com\/profiles\/(\d+)/i);
   if (profileUrlMatch) return profileUrlMatch[1];
   const vanityUrlMatch = trimmed.match(/steamcommunity\.com\/id\/([^\/]+)/i);
   if (vanityUrlMatch) return vanityUrlMatch[1];
-  return trimmed; // bare ID or bare vanity name, let the backend resolve it
+  return trimmed;
 }
 
 document.getElementById("lookup-btn").addEventListener("click", () => {
@@ -89,11 +80,7 @@ document.getElementById("lookup-btn").addEventListener("click", () => {
 });
 
 document.getElementById("demo-btn").addEventListener("click", async () => {
-  if (API_BASE_URL.startsWith("REPLACE_WITH")) {
-    setStatus("Backend not deployed yet, see the README for deployment steps.", true);
-    return;
-  }
-  setStatus("Finding a public demo profile\u2026");
+  setStatus("Finding a public demo profile\u2026", false, true);
   try {
     const res = await fetch(`${API_BASE_URL}/api/demo-profile`);
     if (!res.ok) throw new Error((await res.json()).detail || "No public demo profile available right now");
@@ -101,6 +88,6 @@ document.getElementById("demo-btn").addEventListener("click", async () => {
     document.getElementById("steamid-input").value = steam_id;
     loadProfile(steam_id);
   } catch (err) {
-    setStatus(err.message, true);
+    setStatus(err.message, true, false);
   }
 });
