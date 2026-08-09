@@ -2,35 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Steam Stats Dashboard</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Steam Stats Dashboard</h1>
-  <p class="subtitle">
-    Enter any public Steam ID, or click the demo button, this pulls
-    live data through a FastAPI backend I built and deployed, which
-    proxies the Steam Web API server-side (Steam blocks direct browser
-    calls, and the API key can't safely live in frontend code).
-  </p>
+  <header>
+    <h1>🎮 Steam Stats Dashboard</h1>
+    <p class="subtitle">
+      Enter any public Steam profile, or click the demo button. Live
+      data pulled through a FastAPI backend I built and deployed.
+    </p>
+  </header>
 
   <div class="controls">
-    <input type="text" id="steamid-input" placeholder="Enter a 64-bit Steam ID" />
+    <input type="text" id="steamid-input" placeholder="Steam ID, vanity name, or profile URL" />
     <button id="lookup-btn">Look Up</button>
-    <button id="demo-btn">Load Demo Profile</button>
+    <button id="demo-btn" class="secondary">🎲 Load Demo Profile</button>
   </div>
 
-  <p id="status"></p>
+  <div class="input-hint">
+    <strong>Accepted formats:</strong>
+    <ul>
+      <li>Full profile URL — <code>https://steamcommunity.com/profiles/76561198114503273/</code></li>
+      <li>Full vanity URL — <code>https://steamcommunity.com/id/chorzo/</code></li>
+      <li>Just the vanity name — <code>chorzo</code></li>
+      <li>Just the numeric Steam ID — <code>76561198114503273</code></li>
+    </ul>
+  </div>
 
-  <div id="profile" class="profile hidden">
+  <div id="status-wrap">
+    <div id="spinner" class="spinner hidden"></div>
+    <p id="status"></p>
+  </div>
+
+  <div id="profile" class="profile-card hidden">
     <img id="avatar" src="" alt="Avatar" />
-    <div>
+    <div class="profile-info">
       <h2 id="persona-name"></h2>
-      <p id="totals"></p>
+      <div class="stat-badges">
+        <span class="badge" id="badge-games"></span>
+        <span class="badge" id="badge-hours"></span>
+      </div>
     </div>
   </div>
 
-  <div id="games-list"></div>
+  <section id="games-section" class="hidden">
+    <h3>Top Games by Playtime</h3>
+    <div id="games-list"></div>
+  </section>
+
+  <footer>
+    Built by <a href="https://www.dillonolivi-gamedesignportfolio.com/" target="_blank" rel="noopener">Dillon "DJ" Olivi</a>
+    · <a href="https://github.com/dillon-olivi/steam-dashboard" target="_blank" rel="noopener">View source on GitHub</a>
+  </footer>
 
   <script src="app.js"></script>
 </body>
