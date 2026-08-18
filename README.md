@@ -2,8 +2,8 @@
 
 A full-stack application that looks up a public Steam account and shows their game library, total hours played, and top games by playtime, pulled live from Steam's own API.
 
-**Live Demo:** [dillon-olivi.github.io/steam-dashboard](https://dillon-olivi.github.io/steam-dashboard/)
-**Repository:** [github.com/dillon-olivi/steam-dashboard](https://github.com/dillon-olivi/steam-dashboard)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Try_It_Now-1a9fff?style=for-the-badge)](https://dillon-olivi.github.io/steam-dashboard/)
+[![Repository](https://img.shields.io/badge/GitHub-View_Repository-181717?style=for-the-badge&logo=github)](https://github.com/dillon-olivi/steam-dashboard)
 
 ## Overview
 
@@ -69,15 +69,6 @@ tests/
     tests.yml
     claude-review.yml
 ```
-
-## Deploying this yourself (if you fork it)
-
-1. Get a free Steam Web API key at [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey)
-2. Deploy the backend to Render (free tier): connect this repo, build command `pip install -r requirements.txt`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, and add a `STEAM_API_KEY` environment variable
-3. In `docs/app.js`, replace `API_BASE_URL` with your Render URL
-4. Turn on GitHub Pages: Settings → Pages → Deploy from branch → `main` → `/docs`
-
-Render's free tier sleeps after inactivity, so the first request after a while can take 30 to 50 seconds to wake back up.
 
 ## What I'd add next
 
