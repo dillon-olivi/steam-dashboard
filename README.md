@@ -1,9 +1,13 @@
-# Steam Stats Dashboard
+<img width="1132" height="151" alt="image" src="https://github.com/user-attachments/assets/a647c328-7429-4bbc-b68a-def05a094b67" /># Steam Stats Dashboard
 
 A full-stack application that looks up a public Steam account and shows their game library, total hours played, and top games by playtime, pulled live from Steam's own API.
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Try_It_Now-1a9fff?style=for-the-badge)](https://dillon-olivi.github.io/steam-dashboard/)
-[![Repository](https://img.shields.io/badge/GitHub-View_Repository-181717?style=for-the-badge&logo=github)](https://github.com/dillon-olivi/steam-dashboard)
+[![Live Demo](https://img.shields.io/badge/Steam_Stats_Dashboard-Try_Me!-1a9fff?style=for-the-badge)](https://your-link)
+
+[![Repository](https://img.shields.io/badge/GitHub-View_Repository-1F3864?style=plastic)](https://github.com/dillon-olivi/steam-dashboard)
+
+[![Portfolio Website](https://img.shields.io/badge/My_Website-5B4FCF?style=for-the-badge)](https://dillon-olivi.github.io/)
+
 
 ## Overview
 
