@@ -1,4 +1,4 @@
-<img width="1132" height="151" alt="image" src="https://github.com/user-attachments/assets/a647c328-7429-4bbc-b68a-def05a094b67" /># Steam Stats Dashboard
+# Steam Stats Dashboard
 
 A full-stack application that looks up a public Steam account and shows their game library, total hours played, and top games by playtime, pulled live from Steam's own API.
 
