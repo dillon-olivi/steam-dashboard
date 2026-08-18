@@ -1,114 +1,90 @@
 # Steam Stats Dashboard
 
-**[Live demo](https://dillon-olivi.github.io/steam-dashboard/)** — enter
-any public Steam profile (ID, vanity URL, or profile URL) or click
-"Load Demo Profile" for an instant real result. No download, no setup.
+A full-stack application that looks up a public Steam account and shows their game library, total hours played, and top games by playtime, pulled live from Steam's own API.
 
-Built by [Dillon Olivi](https://www.dillonolivi-gamedesignportfolio.com/) · [GitHub](https://github.com/dillon-olivi)
+**Live Demo:** [dillon-olivi.github.io/steam-dashboard](https://dillon-olivi.github.io/steam-dashboard/)
+**Repository:** [github.com/dillon-olivi/steam-dashboard](https://github.com/dillon-olivi/steam-dashboard)
 
----
+## Overview
 
-## What this is
+This project uses a Python backend and static frontend deployed independently.
 
-A full-stack web app that looks up a Steam account and shows their
-game library, total hours played, and top games by playtime, pulled
-live from Steam's own API.
+The FastAPI backend proxies Steam's Web API so API credentials remain server-side and browser CORS restrictions are avoided. It accepts a Steam ID, profile URL, or vanity name, resolves the account, calculates total playtime and top games, and caches repeated requests to reduce unnecessary upstream API calls.
 
-## What it demonstrates
+I built it to demonstrate backend API development, third-party integration, caching, error handling, automated testing, and independent frontend/backend deployment.
 
-- **Full-stack architecture** — a Python (FastAPI) backend deployed
-  separately from a static frontend (GitHub Pages), talking to each
-  other across hosts, the way most real production systems are
-  actually structured
-- **Third-party API integration** — server-side proxying to work
-  around Steam's CORS restrictions, with API credentials kept out of
-  client-side code entirely
-- **Real-world resilience** — a fallback system that automatically
-  finds a working public profile for the demo button, and graceful
-  error handling when a profile is private or invalid
-- **Performance-minded backend design** — response caching to avoid
-  hammering the upstream API on repeat lookups
-- **Automated testing** — a full pytest suite with Steam's API fully
-  mocked, so tests run fast and reliably in CI without needing real
-  credentials
-- **AI integrated into the CI/CD pipeline itself** — pull requests are
-  automatically reviewed by Claude Code for test coverage gaps
+## Engineering highlights
 
-## Stack
+* Built a FastAPI backend that proxies Steam's `GetPlayerSummaries`, `GetOwnedGames`, and `ResolveVanityURL` endpoints
+* Resolved CORS restrictions and kept API credentials server-side instead of exposed in client code
+* Implemented response caching (`cachetools`) to reduce repeat calls to the upstream API
+* Built a fallback demo-profile system that automatically selects another public profile when the current demo account becomes unavailable
+* Added graceful error handling for private, invalid, or unavailable profiles
+* Deployed the backend independently (Render) from the static frontend (GitHub Pages)
+* Integrated Claude Code directly into the CI pipeline to review pull requests and flag test coverage gaps
 
-FastAPI · httpx · pytest + pytest-mock · vanilla JS frontend ·
-GitHub Actions · Render
+## Tech stack
 
-## Related projects
+* Python
+* FastAPI
+* httpx
+* pytest / pytest-mock
+* JavaScript (vanilla frontend)
+* GitHub Actions
+* GitHub Pages
+* Render
 
-- [release-readiness-demo](https://github.com/dillon-olivi/release-readiness-demo) — test automation & CI/CD focused
-  
----
+## Testing
 
-## Why there's a backend at all
+The project uses a fully mocked automated test suite:
 
-Two real constraints forced this:
+**API tests**
+Verify backend responses for player summaries, game libraries, and the demo-profile fallback logic, with Steam's API fully mocked so tests run without real credentials or network calls.
 
-1. **Steam's API doesn't support CORS**, a browser calling it directly
-   gets blocked, full stop. A server-side proxy is the standard fix.
-2. **The Steam API key shouldn't live in frontend code.** Anyone could
-   view-source it and use it as their own. It needs to sit server-side
-   as an environment variable.
+**CI-integrated AI review**
+Claude Code runs inside the CI pipeline on every pull request, reading the diff and the test coverage output to flag any changed code that lacks coverage.
 
-## Architecture
+This approach provides coverage at the service level while keeping the suite fast and reliable in CI.
 
-- **`/app`** — FastAPI backend: proxies Steam's `GetPlayerSummaries`,
-  `GetOwnedGames`, and `ResolveVanityURL` endpoints, computes total
-  hours and top games server-side, and caches responses for 10 minutes
-  (`cachetools`) so repeat lookups don't re-hit Steam's API or burn
-  the free-tier rate limit
-- **`/docs`** — static frontend (vanilla JS, no framework) deployed via
-  GitHub Pages, calls the deployed backend over `fetch`. Accepts a raw
-  Steam ID, a `/profiles/` URL, a `/id/` vanity URL, or a bare vanity
-  name, the backend resolves all of these to a real Steam ID
-- **`/tests`** — API tests with Steam's responses fully mocked
-  (`pytest-mock`), so the suite runs in CI without needing a real API
-  key or making real network calls
-- **`.github/workflows`** — CI runs the test suite, and Claude Code
-  reviews pull requests, on every push
+## CI/CD
 
-## The demo profile fallback
+GitHub Actions runs the automated test suite on every push. A separate workflow runs Claude Code against every pull request, using Anthropic's official `claude-code-action`, to review the diff and post a plain-language summary as a PR comment.
 
-Steam has no "give me a random public user" endpoint, so `/api/demo-profile`
-keeps a small pool of known profiles (mix of raw IDs and vanity names)
-and, at request time, tries them in random order until it finds one
-that's actually public right now. Self-healing: if one goes private
-later, the demo just moves on to the next candidate instead of breaking.
+The AI review workflow uses limited permissions and is kept separate from deployment decisions.
 
-## AI integrated into CI/CD
+## Project structure
 
-Beyond using AI as a coding assistant, this repo runs **Claude Code
-directly inside the CI pipeline** (`.github/workflows/claude-review.yml`),
-using Anthropic's official `claude-code-action`. On every pull request it:
+```text
+app/
+  main.py
+  steam_client.py
+docs/
+  index.html
+  style.css
+  app.js
+tests/
+  test_api.py
+.github/
+  workflows/
+    tests.yml
+    claude-review.yml
+```
 
-- Reads the diff and reviews the actual code change
-- Reads the pytest coverage output and flags any changed code that
-  lacks test coverage
-- Posts a plain-language summary as a PR comment
+## Deploying this yourself (if you fork it)
 
-Claude Code Action also supports connecting **MCP servers** during CI
-runs. I kept this demo to a single workflow without extra services,
-but the `mcp_config` option is where that would plug in.
+1. Get a free Steam Web API key at [steamcommunity.com/dev/apikey](https://steamcommunity.com/dev/apikey)
+2. Deploy the backend to Render (free tier): connect this repo, build command `pip install -r requirements.txt`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, and add a `STEAM_API_KEY` environment variable
+3. In `docs/app.js`, replace `API_BASE_URL` with your Render URL
+4. Turn on GitHub Pages: Settings → Pages → Deploy from branch → `main` → `/docs`
 
-**Security note**: this workflow intentionally runs with narrow,
-read-focused permissions and never triggers on `pull_request_target`
-against untrusted fork code, since Claude Code Action has documented
-prompt-injection and secret-exfiltration risks when misconfigured.
+Render's free tier sleeps after inactivity, so the first request after a while can take 30 to 50 seconds to wake back up.
 
-## A note on AI assistance
+## What I'd add next
 
-I used Claude to help scaffold the FastAPI structure, the CORS/caching
-setup, and the mocked test patterns. The architecture decisions, why a
-backend is needed here, what to cache and for how long, and what the
-API should compute server-side versus leave to the frontend, are the
-actual engineering judgment calls that were mine to make. I take pride
-in the work I produce and rely on my own skills like a traditional 
-carpenter would when crafting a chair. But sometimes, metaphorically, 
-power tools can make the process faster without losing too much 
-quality. That's a fine line I take seriously and pay close attention to.
+* Rate limiting on my own API, not just caching
+* A "compare two profiles" view
+* Redis instead of in-memory caching, so the cache survives a restart
 
+## About
+
+Built by **Dillon Olivi** as part of my software engineering portfolio, with a focus on backend development, third-party API integration, automated testing, and reliable systems.
